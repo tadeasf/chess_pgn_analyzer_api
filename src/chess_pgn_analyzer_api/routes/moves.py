@@ -92,7 +92,7 @@ async def analyze_all_games(session: AsyncSession):
     batch_size = 10
     while True:
         games = await session.execute(
-            select(Game).where(Game.moves_analyzed == False).limit(batch_size)
+            select(Game).where(Game.moves_analyzed is False).limit(batch_size)
         )
         games = games.scalars().all()
         if not games:
