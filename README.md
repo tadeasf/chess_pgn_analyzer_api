@@ -61,6 +61,28 @@ database management tool.
    rye sync
    ```
 
+### Database Migrations with Alembic
+
+This project uses Alembic for database migrations. Here's how to use it:
+
+1. Initialize Alembic (only needed once):
+
+   ```sh
+   rye run alembic-init
+   ```
+
+2. Generate a new migration:
+
+   ```sh
+   rye run alembic-migrate "Description of the migration"
+   ```
+
+3. Apply migrations:
+
+   ```sh
+   rye run alembic-upgrade
+   ```
+
 ### Running the Application
 
 To run the application locally:
