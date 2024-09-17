@@ -2,12 +2,14 @@
 # use `rye lock` or `rye sync` to update this lockfile
 #
 # last locked with the following flags:
-#   pre: false
+#   pre: true
 #   features: []
-#   all-features: false
-#   with-sources: false
+#   all-features: true
+#   with-sources: true
 #   generate-hashes: false
-#   universal: false
+#   universal: true
+
+--index-url https://pypi.org/simple/
 
 -e file:.
 alembic==1.13.2
@@ -39,6 +41,8 @@ chess==1.10.0
 click==8.1.7
     # via streamlit
     # via uvicorn
+colorama==0.4.6 ; platform_system == 'Windows'
+    # via click
 fastapi==0.114.2
     # via chess-pgn-analyzer-api
 gitdb==4.0.11
@@ -47,6 +51,7 @@ gitpython==3.1.43
     # via streamlit
 greenlet==3.1.0
     # via chess-pgn-analyzer-api
+    # via sqlalchemy
 h11==0.14.0
     # via httpcore
     # via uvicorn
@@ -164,5 +169,5 @@ urllib3==2.2.3
     # via requests
 uvicorn==0.30.6
     # via chess-pgn-analyzer-api
-watchdog==5.0.2
-    # via chess-pgn-analyzer-api
+watchdog==4.0.2 ; platform_system != 'Darwin'
+    # via streamlit
