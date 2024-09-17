@@ -10,8 +10,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install pre-built Stockfish
-RUN wget https://github.com/official-stockfish/Stockfish/releases/download/sf_17/stockfish-ubuntu-x86-64-avx2.tar \
-    && tar -xvf stockfish-ubuntu-x86-64-avx2.tar -C /usr/local/bin \
+RUN wget https://github.com/official-stockfish/Stockfish/releases/download/sf_16/stockfish-ubuntu-x86-64-modern.tar \
+    && tar -xvf stockfish-ubuntu-x86-64-modern.tar \
+    && mv stockfish /usr/local/bin/stockfish \
+    && rm -rf stockfish-ubuntu-x86-64-modern.tar \
     && chmod +x /usr/local/bin/stockfish
 
 # Copy the current directory contents into the container at /app
@@ -25,6 +27,9 @@ EXPOSE 8000 8501
 
 # Create a script to run both FastAPI and Streamlit
 RUN echo '#!/bin/bash\n\
+ls -l /usr/local/bin/stockfish\n\
+file /usr/local/bin/stockfish\n\
+/usr/local/bin/stockfish --version\n\
 uvicorn src.chess_pgn_analyzer_api.main:app --host 0.0.0.0 --port 8000 &\n\
 streamlit run utils/dashboard.py --server.port 8501 --server.address 0.0.0.0\n\
 wait' > /app/start.sh && \

@@ -9,12 +9,50 @@ import chess.pgn
 import io
 import json
 import multiprocessing
+import os
+import logging
+import subprocess
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Adjust Stockfish parameters for slightly more accurate evaluation
+stockfish_path = "/usr/local/bin/stockfish"
+
+# Check if Stockfish exists and is executable
+if not os.path.exists(stockfish_path):
+    logger.error(f"Stockfish not found at {stockfish_path}")
+elif not os.access(stockfish_path, os.X_OK):
+    logger.error(f"Stockfish at {stockfish_path} is not executable")
+else:
+    logger.info(f"Stockfish found and executable at {stockfish_path}")
+    # Try to run Stockfish manually
+    try:
+        result = subprocess.run(
+            [stockfish_path, "--version"], capture_output=True, text=True, timeout=5
+        )
+        logger.info(f"Stockfish version: {result.stdout.strip()}")
+    except subprocess.TimeoutExpired:
+        logger.error("Stockfish command timed out")
+    except Exception as e:
+        logger.error(f"Error running Stockfish manually: {str(e)}")
+
+try:
+    stockfish = Stockfish(
+        path=stockfish_path,
+        depth=12,
+        parameters={"Threads": 2, "Minimum Thinking Time": 20},
+    )
+    logger.info("Stockfish initialized successfully")
+except Exception as e:
+    logger.error(f"Error initializing Stockfish: {str(e)}")
+    stockfish = None
 
 router = APIRouter()
 
-# Adjust Stockfish parameters for slightly more accurate evaluation
 stockfish = Stockfish(
-    path="/usr/local/bin/stockfish",
+    path=stockfish_path,
     depth=12,
     parameters={"Threads": 2, "Minimum Thinking Time": 20},
 )
