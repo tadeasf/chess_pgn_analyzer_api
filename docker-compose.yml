@@ -3,21 +3,26 @@ services:
     build: .
     ports:
       - "8000:8000"
+      - "8501:8501"
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/chess_pgn_analyzer
+      - DATABASE_URL=postgresql://chess_user:chess_password@db:5432/chess_pgn_analyzer
     volumes:
       - ./src:/app/src
+      - ./utils:/app/utils
 
   db:
-    image: postgres:13
+    image: postgres:16.4-alpine3.20
+    container_name: chess_pgn_analyzer_db
+    environment:
+      POSTGRES_DB: chess_pgn_analyzer
+      POSTGRES_USER: chess_user
+      POSTGRES_PASSWORD: chess_password
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=chess_pgn_analyzer
 
 volumes:
   postgres_data:

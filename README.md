@@ -2,6 +2,83 @@
 
 This project is a FastAPI-based API for downloading and analyzing chess games from chess.com.
 
+## Deployment with Docker and Caddy
+
+### Prerequisites
+
+- Docker and Docker Compose
+- A domain name pointed to your server's IP address
+
+### Deployment Steps
+
+1. Clone the repository to your server:
+
+   ```sh
+   git clone https://github.com/yourusername/chess-pgn-analyzer-api.git
+   cd chess-pgn-analyzer-api
+   ```
+
+2. Create a `Caddyfile` in the project root with the following content (replace `your-domain.com` with your actual domain):
+
+   ```sh
+   your-domain.com {
+     reverse_proxy api:8000
+   }
+
+   dashboard.your-domain.com {
+     reverse_proxy api:8501
+   }
+   ```
+
+3. Create a `.env` file in the project root with the following content:
+
+   ```sh
+   DATABASE_URL=postgresql://chess_user:chess_password@db:5432/chess_pgn_analyzer
+   ```
+
+4. Build and start the Docker containers:
+
+   ```sh
+   docker-compose up -d --build
+   ```
+
+5. The services will be available at:
+   - API: `https://your-domain.com`
+   - API Documentation: `https://your-domain.com/docs`
+   - Streamlit Dashboard: `https://dashboard.your-domain.com`
+
+6. To stop the services:
+
+   ```sh
+   docker-compose down
+   ```
+
+### Updating the Application
+
+To update the application with new changes:
+
+1. Pull the latest changes from the repository:
+
+   ```sh
+   git pull origin main
+   ```
+
+2. Rebuild and restart the containers:
+
+   ```sh
+   docker-compose up -d --build
+   ```
+
+### Viewing Logs
+
+To view logs for a specific service:
+
+```sh
+docker-compose logs -f api
+```
+
+Replace `api` with `db` or `caddy` to view logs for other services.
+
 ## Local Development Setup
 
 ### Prerequisites
@@ -97,8 +174,8 @@ The API will be available at `http://localhost:8000`.
 
 Once the application is running, you can access the API documentation at:
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- Swagger UI: `https://your-domain.com/docs`
+- ReDoc: `https://your-domain.com/redoc`
 
 ## Development Workflow
 
