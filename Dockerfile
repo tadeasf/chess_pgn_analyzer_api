@@ -4,8 +4,15 @@ FROM python:3.12-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Install Stockfish
-RUN apt-get update && apt-get install -y stockfish
+# Install necessary tools and wget
+RUN apt-get update && apt-get install -y \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and install pre-built Stockfish
+RUN wget https://github.com/official-stockfish/Stockfish/releases/download/sf_17/stockfish-ubuntu-x86-64-avx2.tar \
+    && tar -xvf stockfish-ubuntu-x86-64-avx2.tar -C /usr/local/bin \
+    && chmod +x /usr/local/bin/stockfish
 
 # Copy the current directory contents into the container at /app
 COPY . /app
@@ -20,7 +27,8 @@ EXPOSE 8000 8501
 RUN echo '#!/bin/bash\n\
 uvicorn src.chess_pgn_analyzer_api.main:app --host 0.0.0.0 --port 8000 &\n\
 streamlit run utils/dashboard.py --server.port 8501 --server.address 0.0.0.0\n\
-wait' >/app/start.sh && chmod +x /app/start.sh
+wait' > /app/start.sh && \
+    chmod +x /app/start.sh
 
 # Run the script
 CMD ["/app/start.sh"]

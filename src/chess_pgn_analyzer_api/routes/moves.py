@@ -13,7 +13,11 @@ import multiprocessing
 router = APIRouter()
 
 # Adjust Stockfish parameters for slightly more accurate evaluation
-stockfish = Stockfish(depth=12, parameters={"Threads": 2, "Minimum Thinking Time": 20})
+stockfish = Stockfish(
+    path="/usr/local/bin/stockfish",
+    depth=12,
+    parameters={"Threads": 2, "Minimum Thinking Time": 20},
+)
 
 
 def categorize_move(evaluation_diff):
