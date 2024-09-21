@@ -12,32 +12,26 @@ import multiprocessing
 import os
 import logging
 import subprocess
+import shutil
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Adjust Stockfish parameters for slightly more accurate evaluation
-stockfish_path = "/usr/local/bin/stockfish"
+# Get Stockfish path from environment variable or find it in PATH
+stockfish_path = os.getenv('STOCKFISH_PATH') or shutil.which('stockfish')
+if not stockfish_path:
+    logger.error("Stockfish executable not found")
+    raise RuntimeError("Stockfish not found")
 
-# Check if Stockfish exists and is executable
-if not os.path.exists(stockfish_path):
-    logger.error(f"Stockfish not found at {stockfish_path}")
-elif not os.access(stockfish_path, os.X_OK):
+logger.info(f"Stockfish path: {stockfish_path}")
+
+# Check if Stockfish is executable
+if not os.access(stockfish_path, os.X_OK):
     logger.error(f"Stockfish at {stockfish_path} is not executable")
-else:
-    logger.info(f"Stockfish found and executable at {stockfish_path}")
-    # Try to run Stockfish manually
-    try:
-        result = subprocess.run(
-            [stockfish_path, "--version"], capture_output=True, text=True, timeout=5
-        )
-        logger.info(f"Stockfish version: {result.stdout.strip()}")
-    except subprocess.TimeoutExpired:
-        logger.error("Stockfish command timed out")
-    except Exception as e:
-        logger.error(f"Error running Stockfish manually: {str(e)}")
+    raise RuntimeError("Stockfish is not executable")
 
+# Initialize Stockfish
 try:
     stockfish = Stockfish(
         path=stockfish_path,
@@ -47,7 +41,7 @@ try:
     logger.info("Stockfish initialized successfully")
 except Exception as e:
     logger.error(f"Error initializing Stockfish: {str(e)}")
-    stockfish = None
+    raise RuntimeError(f"Failed to initialize Stockfish: {str(e)}")
 
 router = APIRouter()
 
