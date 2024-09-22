@@ -13,7 +13,8 @@ class Game(SQLModel, table=True):
     analyzed: bool = Field(default=False)
     analysis_result: Optional[str] = None
     moves_analyzed: bool = Field(default=False)
-    move_analysis: Optional[str] = None  # Add this line
+    is_processing: bool = Field(default=False)
+    move_analysis: Optional[str] = None
     white_username: str
     black_username: str
     white_rating: int

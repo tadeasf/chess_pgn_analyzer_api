@@ -1,16 +1,18 @@
+version: '3.8'
+
 services:
   api:
     build: .
     ports:
       - "8000:8000"
       - "8501:8501"
-    depends_on:
-      - db
     environment:
       - DATABASE_URL=postgresql://chess_user:chess_password@db:5432/chess_pgn_analyzer
     volumes:
       - ./src:/app/src
       - ./utils:/app/utils
+    networks:
+      - chess_network
 
   db:
     image: postgres:16.4-alpine3.20
@@ -23,6 +25,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - chess_network
+
+networks:
+  chess_network:
+    driver: bridge
 
 volumes:
   postgres_data:
