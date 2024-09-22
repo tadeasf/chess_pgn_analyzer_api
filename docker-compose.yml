@@ -13,6 +13,8 @@ services:
       - ./utils:/app/utils
     networks:
       - chess_network
+    depends_on:
+      - db
 
   db:
     image: postgres:16.4-alpine3.20
@@ -21,12 +23,11 @@ services:
       POSTGRES_DB: chess_pgn_analyzer
       POSTGRES_USER: chess_user
       POSTGRES_PASSWORD: chess_password
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - chess_network
+    # Remove the ports section to prevent external access
 
 networks:
   chess_network:
