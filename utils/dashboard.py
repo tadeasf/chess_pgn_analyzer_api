@@ -10,6 +10,13 @@ from dotenv import load_dotenv
 import os
 from chess_pgn_analyzer_api.models.game import Game
 from chess_pgn_analyzer_api.models.player import Player
+from collections import Counter
+import chess.pgn
+import io
+import re
+import requests
+from bs4 import BeautifulSoup
+from functools import lru_cache
 
 load_dotenv()
 
@@ -115,6 +122,34 @@ def categorize_move(category):
     return categories.get(category, "Normal")
 
 
+def get_first_move(pgn):
+    game = chess.pgn.read_game(io.StringIO(pgn))
+    return game.variations[0].move.uci() if game.variations else None
+
+
+@lru_cache(maxsize=128)
+def fetch_opening_name(eco_url):
+    if not eco_url or not isinstance(eco_url, str):
+        return "Unknown"
+    
+    try:
+        response = requests.get(eco_url, timeout=5)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Find the Twitter title meta tag
+        twitter_title = soup.find('meta', attrs={'name': 'twitter:title'})
+        
+        if twitter_title and twitter_title.get('content'):
+            # Remove " - Chess Openings" from the end
+            opening_name = twitter_title['content'].replace(' - Chess Openings', '')
+            return opening_name
+        
+        return "Unknown"
+    except Exception as e:
+        print(f"Error fetching opening name: {str(e)}")
+        return "Unknown"
+
+
 try:
     df = pd.DataFrame(
         [
@@ -130,6 +165,9 @@ try:
                 "player_rating": game.white_rating
                 if game.white_username == selected_player
                 else game.black_rating,
+                "opponent_rating": game.black_rating
+                if game.white_username == selected_player
+                else game.white_rating,
                 "time_control": game.time_control,
                 "result": game.white_result
                 if game.white_username == selected_player
@@ -138,6 +176,9 @@ try:
                     getattr(game, "move_analysis", None),
                     "white" if game.white_username == selected_player else "black",
                 ),
+                "eco": game.eco,
+                "eco_url": game.tournament,
+                "pgn": game.pgn,
             }
             for game in games
         ]
@@ -187,7 +228,7 @@ try:
             move_df.groupby("week")["eval_diff"].mean().reset_index()
         )
         weekly_move_performance["date"] = weekly_move_performance[
-            "week"
+            'week'
         ].dt.to_timestamp()
 
         fig_move_performance = px.line(
@@ -211,6 +252,83 @@ try:
     st.write(
         f"Percentage of games with move analysis: {games_with_move_analysis/total_games*100:.2f}%"
     )
+
+    # New analyses
+    st.header("Advanced Analysis")
+
+    # 1. Opening repertoire analysis
+    st.subheader("Opening Repertoire")
+    df['opening_name'] = df['eco_url'].apply(fetch_opening_name)
+    opening_counts = df['opening_name'].value_counts().head(10)
+    
+    colors = px.colors.qualitative.Plotly[:len(opening_counts)]
+    
+    fig_openings = go.Figure(data=[go.Bar(
+        x=opening_counts.values,
+        y=opening_counts.index,
+        orientation='h',
+        marker_color=colors
+    )])
+    
+    fig_openings.update_layout(
+        title="Top 10 Openings Played",
+        xaxis_title="Frequency",
+        yaxis_title="Opening",
+        height=500,
+        yaxis={'categoryorder':'total ascending'}
+    )
+    
+    st.plotly_chart(fig_openings, use_container_width=True)
+
+    # 2. Time management analysis
+    st.subheader("Time Management")
+    df["time_control_minutes"] = df["time_control"].apply(lambda x: int(x.split("+")[0]) if "+" in x else int(x))
+    fig_time_accuracy = px.scatter(
+        df,
+        x="time_control_minutes",
+        y="player_accuracy",
+        title="Accuracy vs Time Control",
+        labels={"time_control_minutes": "Time Control (minutes)", "player_accuracy": "Accuracy"},
+    )
+    st.plotly_chart(fig_time_accuracy, use_container_width=True)
+
+    # 3. Performance by opponent rating
+    st.subheader("Performance by Opponent Rating")
+    df["rating_diff"] = df["player_rating"] - df["opponent_rating"]
+    fig_opponent = px.scatter(
+        df,
+        x="rating_diff",
+        y="player_accuracy",
+        color="result",
+        title="Performance vs Rating Difference",
+        labels={"rating_diff": "Rating Difference (Player - Opponent)", "player_accuracy": "Accuracy"},
+    )
+    st.plotly_chart(fig_opponent, use_container_width=True)
+
+    # 4. Winning/losing streak analysis
+    st.subheader("Winning/Losing Streaks")
+    df["streak"] = (df["result"] != df["result"].shift()).cumsum()
+    streak_data = df.groupby(["result", "streak"]).size().reset_index(name="streak_length")
+    max_win_streak = streak_data[streak_data["result"] == "win"]["streak_length"].max()
+    max_loss_streak = streak_data[streak_data["result"] == "loss"]["streak_length"].max()
+    st.write(f"Longest winning streak: {max_win_streak}")
+    st.write(f"Longest losing streak: {max_loss_streak}")
+
+    # 5. Move quality distribution (already implemented in existing code)
+
+    # 6. Comparison of performance in different time controls (already implemented in existing code)
+
+    # 7. First move analysis
+    st.subheader("First Move Analysis")
+    df["first_move"] = df["pgn"].apply(get_first_move)
+    first_move_counts = df["first_move"].value_counts().head(5)
+    fig_first_moves = px.bar(
+        x=first_move_counts.index,
+        y=first_move_counts.values,
+        labels={"x": "First Move", "y": "Frequency"},
+        title="Top 5 First Moves",
+    )
+    st.plotly_chart(fig_first_moves, use_container_width=True)
 
     # Visualizations
     if df.empty:
