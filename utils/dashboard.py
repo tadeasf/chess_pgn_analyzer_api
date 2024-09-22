@@ -155,29 +155,21 @@ try:
         [
             {
                 "date": game.end_time.date(),
-                "player_color": "white"
-                if game.white_username == selected_player
-                else "black",
+                "player_color": "white" if game.white_username == selected_player else "black",
                 "player_accuracy": parse_analysis_result(
                     game.analysis_result,
                     "white" if game.white_username == selected_player else "black",
                 ),
-                "player_rating": game.white_rating
-                if game.white_username == selected_player
-                else game.black_rating,
-                "opponent_rating": game.black_rating
-                if game.white_username == selected_player
-                else game.white_rating,
+                "player_rating": game.white_rating if game.white_username == selected_player else game.black_rating,
+                "opponent_rating": game.black_rating if game.white_username == selected_player else game.white_rating,
                 "time_control": game.time_control,
-                "result": game.white_result
-                if game.white_username == selected_player
-                else game.black_result,
+                "result": game.white_result if game.white_username == selected_player else game.black_result,
                 "move_analysis": parse_move_analysis(
                     getattr(game, "move_analysis", None),
                     "white" if game.white_username == selected_player else "black",
                 ),
                 "eco": game.eco,
-                "eco_url": game.tournament,
+                "eco_name": game.eco_name,
                 "pgn": game.pgn,
             }
             for game in games
@@ -258,27 +250,29 @@ try:
 
     # 1. Opening repertoire analysis
     st.subheader("Opening Repertoire")
-    df['opening_name'] = df['eco_url'].apply(fetch_opening_name)
-    opening_counts = df['opening_name'].value_counts().head(10)
+    opening_counts = df['eco_name'].value_counts().head(10)
     
-    colors = px.colors.qualitative.Plotly[:len(opening_counts)]
-    
-    fig_openings = go.Figure(data=[go.Bar(
-        x=opening_counts.values,
-        y=opening_counts.index,
-        orientation='h',
-        marker_color=colors
-    )])
-    
-    fig_openings.update_layout(
-        title="Top 10 Openings Played",
-        xaxis_title="Frequency",
-        yaxis_title="Opening",
-        height=500,
-        yaxis={'categoryorder':'total ascending'}
-    )
-    
-    st.plotly_chart(fig_openings, use_container_width=True)
+    if not opening_counts.empty:
+        colors = px.colors.qualitative.Plotly[:len(opening_counts)]
+        
+        fig_openings = go.Figure(data=[go.Bar(
+            x=opening_counts.values,
+            y=opening_counts.index,
+            orientation='h',
+            marker_color=colors
+        )])
+        
+        fig_openings.update_layout(
+            title="Top 10 Openings Played",
+            xaxis_title="Frequency",
+            yaxis_title="Opening",
+            height=500,
+            yaxis={'categoryorder':'total ascending'}
+        )
+        
+        st.plotly_chart(fig_openings, use_container_width=True)
+    else:
+        st.warning("No opening data available for the selected games.")
 
     # 2. Time management analysis
     st.subheader("Time Management")
@@ -482,7 +476,7 @@ except Exception as e:
     st.write("Sample of problematic data:")
     for game in games[:5]:
         st.write(
-            f"Game ID: {game.id}, Analysis Result: {game.analysis_result}, Move Analysis: {getattr(game, 'move_analysis', 'Not available')}"
+            f"Game ID: {game.id}, ECO: {game.eco}, Analysis Result: {game.analysis_result}, Move Analysis: {getattr(game, 'move_analysis', 'Not available')}"
         )
     st.stop()
 

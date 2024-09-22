@@ -92,11 +92,15 @@ async def fetch_and_store_games(
                 if existing_game and not is_current_month:
                     continue
 
+                eco_url = game_data.get("eco")
+                eco_name = Game.fetch_opening_name(eco_url) if eco_url else "Unknown"
+
                 if existing_game:
                     # Update existing game for current month
                     for key, value in game_data.items():
                         if hasattr(existing_game, key):
                             setattr(existing_game, key, value)
+                    existing_game.eco_name = eco_name
                     game = existing_game
                 else:
                     # Create new game
@@ -117,7 +121,8 @@ async def fetch_and_store_games(
                         end_time=datetime.fromtimestamp(game_data["end_time"]),
                         time_control=game_data["time_control"],
                         rules=game_data.get("rules"),
-                        eco=game_data.get("eco"),
+                        eco=eco_url,
+                        eco_name=eco_name,
                         tournament=game_data.get("tournament"),
                         match=game_data.get("match"),
                         analysis_result=json.dumps(game_data.get("accuracies", {})),

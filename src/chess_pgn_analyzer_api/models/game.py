@@ -2,6 +2,8 @@ from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime
 import json
+import requests
+from bs4 import BeautifulSoup
 
 
 class Game(SQLModel, table=True):
@@ -26,6 +28,7 @@ class Game(SQLModel, table=True):
     time_control: str
     rules: Optional[str]
     eco: Optional[str]
+    eco_name: Optional[str] = None
     tournament: Optional[str]
     match: Optional[str]
 
@@ -38,3 +41,23 @@ class Game(SQLModel, table=True):
                 self.analyzed = False
         else:
             self.analyzed = False
+
+    @staticmethod
+    def fetch_opening_name(eco_url: str) -> str:
+        if not eco_url or not isinstance(eco_url, str):
+            return "Unknown"
+        
+        try:
+            response = requests.get(eco_url, timeout=5)
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            twitter_title = soup.find('meta', attrs={'name': 'twitter:title'})
+            
+            if twitter_title and twitter_title.get('content'):
+                opening_name = twitter_title['content'].replace(' - Chess Openings', '')
+                return opening_name
+            
+            return "Unknown"
+        except Exception as e:
+            print(f"Error fetching opening name: {str(e)}")
+            return "Unknown"
