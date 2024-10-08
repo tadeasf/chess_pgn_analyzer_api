@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Depends, BackgroundTasks
-from sqlmodel import select, update
+from sqlmodel import select, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, and_
-from sqlalchemy.dialects.postgresql import array
 from ..database import get_session
 from ..models.game import Game
 from stockfish import Stockfish
@@ -72,7 +70,7 @@ def categorize_move(evaluation_diff):
         return "++"  # Decisive advantage
 
 async def analyze_game_moves(game_pgn: str) -> list:
-    logger.info(f"Starting analysis of game moves")
+    logger.info("Starting analysis of game moves")
     start_time = time.time()
     
     async with semaphore:
@@ -149,15 +147,14 @@ async def analyze_all_games(session: AsyncSession):
             # Select games to analyze
             subquery = (
                 select(Game.id)
-                .where(and_(Game.moves_analyzed == False, Game.is_processing == False))
+                .where(and_(Game.moves_analyzed == False, Game.is_processing == False))  # noqa: E712
                 .limit(batch_size)
-                .subquery()
             )
 
             # Update selected games to mark them as being processed
             update_stmt = (
                 update(Game)
-                .where(and_(Game.id.in_(subquery), Game.moves_analyzed == False, Game.is_processing == False))
+                .where(and_(Game.id.in_(subquery.scalar_subquery()), Game.moves_analyzed == False, Game.is_processing == False))  # noqa: E712
                 .values(is_processing=True)
                 .returning(Game)
             )
