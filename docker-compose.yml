@@ -31,12 +31,13 @@ services:
     # Remove the ports section to prevent external access
 
   localtunnel:
-    image: efrecon/localtunnel
-    environment:
-      - LOCAL_HOST=api
-      - LOCAL_PORT=8000
-      - SUBDOMAIN=chess-api-test
-      - AUTH=mydesiredpassword
+    image: node:alpine
+    command: >
+      sh -c "
+        echo 'Installing localtunnel...' &&
+        npm install -g localtunnel &&
+        echo 'Starting tunnel...' &&
+        lt --port 8000 --subdomain chess-api-test --local-host api --basic-auth user:fort-chess-api"
     depends_on:
       - api
     networks:
