@@ -32,12 +32,9 @@ services:
     # Remove the ports section to prevent external access
 
   localtunnel-client:
-    image: efrecon/localtunnel
-    environment:
-      - LOCAL_HOST=api
-      - LOCAL_PORT=8000
-      - LT_SUBDOMAIN=chess-api
-      - LT_HOST=http://lt.tadeasfort.cz:4000
+    image: node:alpine
+    command: >
+      sh -c "npm install -g localtunnel && lt --host http://lt.tadeasfort.cz:4000 --port 8000 --subdomain chess-api"
     depends_on:
       - api
     networks:
