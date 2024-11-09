@@ -4,5 +4,10 @@ services:
   localtunnel-server:
     image: defunctzombie/localtunnel-server:latest
     ports:
-      - "4000:3000"
-    command: --port 3000 --domain lt.tadeasfort.cz 
+      - "4000:4000"
+    command: >
+      sh -c "
+        echo 'Starting localtunnel server...' &&
+        DEBUG=* node -r esm ./bin/server --port 4000 --domain lt.tadeasfort.cz"
+    environment:
+      - DEBUG=localtunnel*
