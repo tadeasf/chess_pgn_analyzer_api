@@ -4,7 +4,6 @@ services:
   api:
     build: .
     ports:
-      - "8001:8000"
       - "8501:8501"
     environment:
       - DATABASE_URL=postgresql://chess_user:chess_password@db:5432/chess_pgn_analyzer
@@ -31,16 +30,13 @@ services:
       - chess_network
     # Remove the ports section to prevent external access
 
-  localtunnel-client:
-    image: node:alpine
-    command: >
-      sh -c "
-        echo 'Installing localtunnel...' &&
-        npm install -g localtunnel &&
-        echo 'Starting tunnel...' &&
-        DEBUG=* lt --port 8000 --subdomain chess-api-test --local-host api --print-requests"
+  localtunnel:
+    image: efrecon/localtunnel
     environment:
-      - DEBUG=localtunnel*
+      - LOCAL_HOST=api
+      - LOCAL_PORT=8000
+      - SUBDOMAIN=chess-api-test
+      - AUTH=mydesiredpassword
     depends_on:
       - api
     networks:
