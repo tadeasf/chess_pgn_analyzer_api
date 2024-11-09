@@ -8,6 +8,6 @@ services:
     command: >
       sh -c "
         echo 'Starting localtunnel server...' &&
-        DEBUG=* node -r esm ./bin/server --port 80 --domain lt.tadeasfort.cz"
+        DEBUG=* node -r esm ./bin/server --port 80 --domain lt.tadeasfort.cz --max-sockets 1000"
     environment:
       - DEBUG=localtunnel*
