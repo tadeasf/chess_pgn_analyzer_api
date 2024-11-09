@@ -2,6 +2,44 @@
 
 This project is a FastAPI-based API for downloading and analyzing chess games from chess.com.
 
+## Dev deployment with localtunnel
+
+First deploy and run the localtunnel server:
+
+```bash
+docker-compose -f localtunnel-server.yml up -d
+```
+
+Then run your main stack:
+
+```bash
+docker-compose up -d
+```
+
+The localtunnel client will automatically connect to your localtunnel server and create a secure HTTPS tunnel. Your API will be accessible at: `https://chess-api.lt.tadeasfort.cz`
+
+This URL will:
+* **Have a valid HTTPS certificate**
+* **Be publicly accessible**
+* **Handle CORS issues since it's using HTTPS**
+* **Allow your Next.js frontend to make API calls without any CORS configuration**
+* **You can verify it's working by:**
+* **Checking the localtunnel-client logs:**
+
+```bash
+docker-compose logs localtunnel-client
+```
+
+Making a test request to the URL:
+
+```bash
+curl https://chess-api.lt.tadeasfort.cz/docs
+```
+
+The tunnel will automatically reconnect if the connection drops, and the URL will remain consistent because you specified the subdomain (chess-api).
+
+Obviously you **have to setup dns!** You can check examples in [localTunnelDNStutorial.md](./localtunnelDNStutorial.md)
+
 ## Deployment with Docker and Caddy
 
 ### Prerequisites

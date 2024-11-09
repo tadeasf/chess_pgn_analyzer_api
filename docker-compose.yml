@@ -31,6 +31,18 @@ services:
       - chess_network
     # Remove the ports section to prevent external access
 
+  localtunnel-client:
+    image: efrecon/localtunnel
+    environment:
+      - LOCAL_HOST=api
+      - LOCAL_PORT=8000
+      - LT_SUBDOMAIN=chess-api
+      - LT_HOST=http://lt.tadeasfort.cz:3000
+    depends_on:
+      - api
+    networks:
+      - chess_network
+
 networks:
   chess_network:
     driver: bridge

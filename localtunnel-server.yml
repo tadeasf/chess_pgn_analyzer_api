@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  localtunnel-server:
+    image: defunctzombie/localtunnel-server:latest
+    ports:
+      - "3000:3000"
+    command: --port 3000 --domain lt.tadeasfort.cz 
