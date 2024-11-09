@@ -38,7 +38,10 @@ services:
         echo 'Installing localtunnel...' &&
         npm install -g localtunnel &&
         echo 'Starting tunnel...' &&
-        lt --host http://lt.tadeasfort.cz:4000 --port 8000 --subdomain chess-api --local-host api --print-requests --allow-invalid-cert"
+        DEBUG=* lt --host http://lt.tadeasfort.cz:4000 --port 8000 --subdomain chess-api --local-host api --print-requests --allow-invalid-cert"
+    environment:
+      - DEBUG=localtunnel*
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
     depends_on:
       - api
     networks:
