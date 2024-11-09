@@ -4,41 +4,31 @@ This project is a FastAPI-based API for downloading and analyzing chess games fr
 
 ## Dev deployment with localtunnel
 
-First deploy and run the localtunnel server:
-
+First, check your tunnel password by running this command on your VPS:
 ```bash
-docker-compose -f localtunnel-server.yml up -d
+curl https://loca.lt/mytunnelpassword
 ```
+This will return your server's tunnel password.
 
-Then run your main stack:
-
+Then run your stack:
 ```bash
 docker-compose up -d
 ```
 
-The localtunnel client will automatically connect to your localtunnel server and create a secure HTTPS tunnel. Your API will be accessible at: `https://chess-api.lt.tadeasfort.cz`
+The localtunnel client will automatically connect and create a secure HTTPS tunnel. Your API will be accessible at: `https://chess-api-test.loca.lt`
 
-This URL will:
-* **Have a valid HTTPS certificate**
-* **Be publicly accessible**
-* **Handle CORS issues since it's using HTTPS**
-* **Allow your Next.js frontend to make API calls without any CORS configuration**
-* **You can verify it's working by:**
-* **Checking the localtunnel-client logs:**
-
+You can verify it's working by:
+* Checking the localtunnel-client logs:
 ```bash
-docker-compose logs localtunnel-client
+docker-compose logs localtunnel
 ```
 
-Making a test request to the URL:
-
+* Making a test request to the URL:
 ```bash
-curl https://chess-api.lt.tadeasfort.cz/docs
+curl https://chess-api-test.loca.lt/docs
 ```
 
-The tunnel will automatically reconnect if the connection drops, and the URL will remain consistent because you specified the subdomain (chess-api).
-
-Obviously you **have to setup dns!** You can check examples in [localTunnelDNStutorial.md](./localtunnelDNStutorial.md)
+The tunnel will automatically reconnect if the connection drops.
 
 ## Deployment with Docker and Caddy
 
